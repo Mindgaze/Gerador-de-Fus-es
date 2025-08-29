@@ -10,4 +10,4 @@ Foi realizada uma ação de prompt enginering, baseada em zero shot prompting di
 O codigo gerado foi textado em ambiente colab. O codigo apresentou erro na etapa de importação do modelo. Minha hipotese é que O erro apresentado foi decorente das seguintes linhas, uma vez que que o ambiente Colab na forma que posso ultlizar não suporta tal recurso.  
 "# Move the model to the GPU for faster processing
 ---> 17 pipe = pipe.to("cuda")"
- 
+ Elimianr as linhas  teve resultados positivos. O passo de importação do modelo e upload da primeira imagem teve sucesso. Entretanto um novo problema aparaceu na celula de geração da imagem em si. Entertanto a renderização da da imagem ainda estava viculado ao GPU ("cuda") levando a problemas. Optou-se por excluir menções a "cuda" e deixar o sistema alocar o melhor hardware disponivel
