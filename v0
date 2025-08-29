@@ -1,0 +1,106 @@
+Of course. Here is a complete Python script designed for Google Colab that sets up an AI image art generator. This code allows you to fuse two images based on a text prompt and generates a new image in a 9:16 aspect ratio with a full-body view.
+
+Just copy and paste each code block into a separate cell in your Google Colab notebook and run them in order.
+
+-----
+
+## 1\. Setup Environment ⚙️
+
+This first step installs all the necessary libraries. It might take a few minutes to complete.
+
+# Install required Python libraries
+!pip install diffusers transformers accelerate invisible_watermark -q
+
+-----
+
+## 2\. Load the AI Model 🧠
+
+Next, we'll load the pre-trained Stable Diffusion model. This model is powerful and can create high-quality images. This step downloads the model weights, so it can also take a moment.
+
+import torch
+from diffusers import StableDiffusionImg2ImgPipeline
+from PIL import Image
+import requests
+from io import BytesIO
+
+# Load the pre-trained image-to-image pipeline
+# Using a specific model known for good artistic results
+model_id = "runwayml/stable-diffusion-v1-5"
+pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
+    model_id,
+    torch_dtype=torch.float16,
+    use_safetensors=True
+)
+
+
+
+print("✅ Model loaded successfully!")
+
+-----
+
+## 3\. Upload Your Images 🖼️
+
+Run this cell to upload the two images you want to fuse. An "upload" button will appear.
+
+  * **Image 1 (Style Image):** This image will provide the initial structure and composition for the new artwork.
+  * **Image 2 (Content Image):** While not directly used as a second input image in this pipeline, its concepts should be described in your prompt. The AI will fuse the *idea* of this image with the structure of the first one.
+
+<!-- end list -->
+
+from google.colab import files
+
+print("Please upload your first image (the base/style image)...")
+uploaded_style = files.upload()
+
+if uploaded_style:
+    style_image_name = next(iter(uploaded_style))
+    print(f"\nUploaded '{style_image_name}' as the style image.")
+else:
+    print("No style image was uploaded.")
+
+-----
+
+## 4\. Generate Your AI Art ✨
+
+This is the final step where the magic happens.
+
+1.  **Define your prompt:** Clearly describe the final image you want. Mention elements from both of your uploaded images and add "Full Length Body Size View" to ensure the framing is correct.
+2.  **Run the cell:** The AI will use your first image as a base and transform it according to your prompt, generating a new piece of art in the specified 9:16 aspect ratio.
+
+<!-- end list -->
+
+# --- Your Settings ---
+prompt = "A fusion of the two images, a surreal portrait of a knight wearing a floral helmet, cinematic lighting, dramatic, Full Length Body Size View"
+
+# --- Image Generation ---
+if uploaded_style:
+    # Open the uploaded image
+    init_image = Image.open(BytesIO(uploaded_style[style_image_name])).convert("RGB")
+
+    # Define the 9:16 aspect ratio dimensions
+    # These are standard resolutions for this ratio
+    width = 576
+    height = 1024
+
+    # Resize the initial image to match the target output dimensions
+    init_image = init_image.resize((width, height))
+
+    print("⏳ Generating your image... this may take a moment.")
+
+    # Generate the image
+    # 'strength' controls how much the original image is changed (0.0-1.0)
+    # 'guidance_scale' controls how closely the prompt is followed (higher is stricter)
+    generator = torch.Generator(device="cuda").manual_seed(1024) # for reproducible results
+    image = pipe(
+        prompt=prompt,
+        image=init_image,
+        strength=0.75,
+        guidance_scale=7.5,
+        generator=generator
+    ).images[0]
+
+    print("\n🎉 Generation complete! Here is your fused artwork:")
+    display(image)
+
+else:
+    print("⚠️ Please upload a style image in the previous cell before running this one.")
